@@ -1,5 +1,5 @@
 // Copyright (c) 2018 ml5
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -9,6 +9,8 @@ KNN_Image
 KNN Image Classifier example with p5.js
 === */
 
+const CLASSES = 3;
+
 let knn;
 let video;
 
@@ -16,7 +18,7 @@ function setup() {
   noCanvas();
   video = createCapture(VIDEO).parent('videoContainer');
   // Create a KNN Image Classifier
-  knn = new ml5.KNNImageClassifier(2, 1, modelLoaded, video.elt);
+  knn = new ml5.KNNImageClassifier(CLASSES, 1, modelLoaded, video.elt);
   createButtons();
 }
 
@@ -27,35 +29,38 @@ function createButtons() {
     knn.save();
   });
 
- load = select('#load');
- load.mousePressed(function() {
+  load = select('#load');
+  load.mousePressed(function() {
     knn.load(updateExampleCounts);
   });
 
+  const buttonBlock = document.getElementById('buttonBlock');
+  for (let i = 1; i <= CLASSES; i++) {
+    // Train buttons
+    const btn = document.createElement('button');
+    btn.textContent = `Train ${i}`;
+    buttonBlock.appendChild(btn);
+    btn.addEventListener('mousedown', () => {
+      train(i);
+    });
 
-  // Train buttons
-  buttonA = select('#buttonA');
-  buttonA.mousePressed(function() {
-    train(1);
-  });
+    // Reset buttons
+    const resetBtn = document.createElement('button');
+    resetBtn.textContent = `Reset ${i}`;
+    buttonBlock.appendChild(resetBtn);
+    resetBtn.addEventListener('mousedown', () => {
+      clearClass(i);
+      updateExampleCounts();
+    });
 
-  buttonB = select('#buttonB');
-  buttonB.mousePressed(function() {
-    train(2);
-  });
-
-  // Reset buttons
-  resetBtnA = select('#resetA');
-  resetBtnA.mousePressed(function() {
-    clearClass(1);
-    updateExampleCounts();
-  });
-
-  resetBtnB = select('#resetB');
-  resetBtnB.mousePressed(function() {
-    clearClass(2);
-    updateExampleCounts();
-  });
+    const example = document.createElement('span');
+    example.id = `example${i}`;
+    example.textContent = '0';
+    const exampleContainer = document.createElement('p');
+    exampleContainer.appendChild(example);
+    exampleContainer.insertAdjacentHTML('beforeend', ` Examples in ${i}<br>`);
+    buttonBlock.appendChild(exampleContainer);
+  }
 
   // Predict Button
   buttonPredict = select('#buttonPredict');
@@ -69,13 +74,7 @@ function modelLoaded() {
 
 // Train the Classifier on a frame from the video.
 function train(category) {
-  let msg;
-  if (category == 1) {
-    msg = 'A';
-  } else if (category == 2) {
-    msg = 'B';
-  }
-  select('#training').html(msg);
+  select('#training').html(category);
   knn.addImageFromVideo(category);
   updateExampleCounts();
 }
@@ -87,20 +86,9 @@ function predict() {
 
 // Show the results
 function gotResults(results) {
-  let msg;
+  select('#result').html(results.classIndex);
 
-  if (results.classIndex == 1) {
-    msg = 'A';
-  } else if (results.classIndex == 2) {
-    msg = 'B';
-  }
-  select('#result').html(msg);
-
-  // Update confidence
-  select('#confidenceA').html(results.confidences[1]);
-  select('#confidenceB').html(results.confidences[2]);
-
-  setTimeout(function(){
+  setTimeout(function() {
     predict();
   }, 50);
 }
@@ -113,6 +101,7 @@ function clearClass(classIndex) {
 // Update the example count for each class
 function updateExampleCounts() {
   let counts = knn.getClassExampleCount();
-  select('#exampleA').html(counts[1]);
-  select('#exampleB').html(counts[2]);
+  for (let i = 1; i <= CLASSES; i++) {
+    select(`#example${i}`).html(counts[i]);
+  }
 }
