@@ -17,20 +17,20 @@ let video;
 function setup() {
   noCanvas();
   // Create a KNN Image Classifier
-  setupVideo();
+  setupVideo.next();
   video.mousePressed(function(){
-    setupVideo();
+    setupVideo.next();
   });
   knn = new ml5.KNNImageClassifier(CLASSES, 1, modelLoaded, video.elt);
   createButtons();
 }
 
-function * setupVideo(){
+let setupVideo = (function * (){
   for(var preferFrontCamera=true;;preferFrontCamera=!preferFrontCamera){
     video = createCapture({"video":{"facingMode":(preferFrontCamera?"user":"environment")},"audio":false}).parent('videoContainer');
     yield;
   }
-}
+})();
 
 function createButtons() {
   // Save and Load buttons
