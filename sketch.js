@@ -14,14 +14,22 @@ const CLASSES = 3;
 let knn;
 let video;
 
-const preferFrontCamera = false;
-
 function setup() {
   noCanvas();
-  video = createCapture({"video":{"facingMode":(preferFrontCamera?"user":"environment")},"audio":false}).parent('videoContainer');
   // Create a KNN Image Classifier
+  setupVideo();
+  video.mousePressed(function(){
+    setupVideo();
+  });
   knn = new ml5.KNNImageClassifier(CLASSES, 1, modelLoaded, video.elt);
   createButtons();
+}
+
+function * setupVideo(){
+  for(var preferFrontCamera=true;preferFrontCamera=!preferFrontCamera;){
+    video = createCapture({"video":{"facingMode":(preferFrontCamera?"user":"environment")},"audio":false}).parent('videoContainer');
+    yield;
+  }
 }
 
 function createButtons() {
