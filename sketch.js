@@ -14,9 +14,11 @@ const CLASSES = 3;
 let knn;
 let video;
 
+const preferFrontCamera = false;
+
 function setup() {
   noCanvas();
-  video = createCapture(VIDEO).parent('videoContainer');
+  video = createCapture({"video":{"facingMode":(preferFrontCamera?"user":"environment")},"audio":false}).parent('videoContainer');
   // Create a KNN Image Classifier
   knn = new ml5.KNNImageClassifier(CLASSES, 1, modelLoaded, video.elt);
   createButtons();
