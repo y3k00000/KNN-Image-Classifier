@@ -26,7 +26,7 @@ function setup() {
 }
 
 function * setupVideo(){
-  for(var preferFrontCamera=true;preferFrontCamera=!preferFrontCamera;){
+  for(var preferFrontCamera=true;;preferFrontCamera=!preferFrontCamera){
     video = createCapture({"video":{"facingMode":(preferFrontCamera?"user":"environment")},"audio":false}).parent('videoContainer');
     yield;
   }
