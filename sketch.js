@@ -14,10 +14,16 @@ const CLASSES = 3;
 let knn;
 let video;
 
+const preferFrontCamera = false;
+
 function setup() {
   noCanvas();
-  video = createCapture(VIDEO).parent('videoContainer');
   // Create a KNN Image Classifier
+  video = createCapture({"video":{"facingMode":(preferFrontCamera?"user":"environment")},"audio":false}).parent('videoContainer');
+  video.mousePressed(function(){
+    // 這個會讓p5.js在videoContainer又創一個新的element到videoContainer，需調整行為。
+    // video = createCapture({"video":{"facingMode":(preferFrontCamera?"user":"environment")},"audio":false}).parent('videoContainer');
+  });
   knn = new ml5.KNNImageClassifier(CLASSES, 1, modelLoaded, video.elt);
   createButtons();
 }
