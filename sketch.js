@@ -14,21 +14,36 @@ const CLASSES = 3;
 let knn;
 let video;
 
-const preferFrontCamera = false;
+const facingMode = localStorage.getItem('facingMode') || 'user';
 
 function setup() {
   noCanvas();
   // Create a KNN Image Classifier
-  video = createCapture({"video":{"facingMode":(preferFrontCamera?"user":"environment")},"audio":false}).parent('videoContainer');
-  video.mousePressed(function(){
-    // 這個會讓p5.js在videoContainer又創一個新的element到videoContainer，需調整行為。
-    // video = createCapture({"video":{"facingMode":(preferFrontCamera?"user":"environment")},"audio":false}).parent('videoContainer');
-  });
+  video = createCapture({
+    video: { facingMode: facingMode },
+    audio: false,
+  }).parent('videoContainer');
   knn = new ml5.KNNImageClassifier(CLASSES, 1, modelLoaded, video.elt);
   createButtons();
 }
 
 function createButtons() {
+  // Switch Camera button
+  switchCamera = select('#switchCamera');
+  switchCamera.mousePressed(function() {
+    if (
+      confirm('Switch camera needs refresh page.\nDo you realy want to switch?')
+    ) {
+      localStorage.setItem(
+        'facingMode',
+        localStorage.getItem('facingMode') === 'environment'
+          ? 'user'
+          : 'environment'
+      );
+      location.reload();
+    }
+  });
+
   // Save and Load buttons
   save = select('#save');
   save.mousePressed(function() {
