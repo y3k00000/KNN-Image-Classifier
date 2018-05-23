@@ -11,8 +11,6 @@
   <meta charset="UTF-8">
   <title>KNN Image Classifier Example</title>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.0/p5.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.0/addons/p5.dom.min.js"></script>
   <script src="https://weizhihuang.github.io/ml5-library/dist/ml5.min.js"></script>
 
   <style>
@@ -41,29 +39,94 @@
 </head>
 
 <body>
-  <div id="videoContainer"></div>
-  <button id="switchCamera">Switch Camera</button>
-  <h6 id="loading">Loading base model...</h6>
+  <video id="video" autoplay playsinline></video>
+  <button onclick="switchCamera()">Switch Camera</button>
   <h6>This example has two options:</h6>
   <h6>A) Load a pretrained model to detect if you are covering your webcam:
-    <button id="load">Load Trained Model</button>
+    <button onclick="cameraRecognizer.load()">Load Trained Model</button>
   </h6>
   <h6>b) Train your own model here and save it: </h6>
-  <p id="buttonBlock">
-  </p>
+  <p id="buttonBlock"></p>
   <br/>
   <h6>Training on:
     <span id="training"></span>
   </h6>
   <h6>Save your trained model:
-    <button id="save">Save Trained Model</button>
+    <button onclick="cameraRecognizer.save()">Save Trained Model</button>
   </h6>
   <p>
-    <button id="buttonPredict">Start guessing!</button>
+    <button onclick="cameraRecognizer.predict()">Start guessing!</button>
     <br> My guess is category:
     <span id="result">...</span>
   </p>
   <script src="sketch.js"></script>
+  <script>
+    const CLASSES = 3;
+    const FACINGMODE = localStorage.getItem('facingMode');
+
+    const callback = {
+      onInitialized: (status) => {
+        if (status) {
+          createButtons();
+        } else {
+          alert('Woops! Something wrong here.');
+        }
+      },
+      onTrainComplete: () => {
+
+      },
+      onRecognizeResult: (result) => {
+        document.getElementById('result').textContent = result
+      }
+    }
+
+    const cameraRecognizer = new CameraRecognizer(document.getElementById('video'), callback, CLASSES, FACINGMODE);
+
+    const createButtons = () => {
+      const buttonBlock = document.getElementById('buttonBlock');
+      for (let i = 1; i <= CLASSES; i++) {
+        // Train buttons
+        const btn = document.createElement('button');
+        btn.textContent = `Train ${i}`;
+        buttonBlock.appendChild(btn);
+        btn.addEventListener('mousedown', () => {
+          document.getElementById('training').textContent = i;
+          cameraRecognizer.train(i);
+        });
+
+        // Reset buttons
+        const resetBtn = document.createElement('button');
+        resetBtn.textContent = `Reset ${i}`;
+        buttonBlock.appendChild(resetBtn);
+        resetBtn.addEventListener('mousedown', () => {
+          cameraRecognizer.clearClass(i);
+          cameraRecognizer.updateExampleCounts();
+        });
+
+        const example = document.createElement('span');
+        example.id = `example${i}`;
+        example.textContent = '0';
+        const exampleContainer = document.createElement('p');
+        exampleContainer.appendChild(example);
+        exampleContainer.insertAdjacentHTML('beforeend', ` Examples in ${i}<br>`);
+        buttonBlock.appendChild(exampleContainer);
+      }
+    }
+
+    const switchCamera = () => {
+      if (
+        confirm('Switch camera needs refresh page.\nDo you realy want to switch?')
+      ) {
+        localStorage.setItem(
+          'facingMode',
+          localStorage.getItem('facingMode') === 'user'
+            ? 'environment'
+            : 'user'
+        );
+        location.reload();
+      }
+    }
+  </script>
 </body>
 
 </html>
