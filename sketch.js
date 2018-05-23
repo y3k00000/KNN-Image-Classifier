@@ -9,120 +9,77 @@ KNN_Image
 KNN Image Classifier example with p5.js
 === */
 
-const CLASSES = 3;
-
 let knn;
-let video;
 
-const facingMode = localStorage.getItem('facingMode') || 'user';
+class CameraRecognizer {
+  constructor(video, callback, classes, facingMode) {
+    this.callback = callback;
+    this.classes = classes;
 
-function setup() {
-  noCanvas();
-  // Create a KNN Image Classifier
-  video = createCapture({
-    video: { facingMode: facingMode },
-    audio: false,
-  }).parent('videoContainer');
-  knn = new ml5.KNNImageClassifier(CLASSES, 1, modelLoaded, video.elt);
-  createButtons();
-}
-
-function createButtons() {
-  // Switch Camera button
-  switchCamera = select('#switchCamera');
-  switchCamera.mousePressed(function() {
-    if (
-      confirm('Switch camera needs refresh page.\nDo you realy want to switch?')
-    ) {
-      localStorage.setItem(
-        'facingMode',
-        localStorage.getItem('facingMode') === 'environment'
-          ? 'user'
-          : 'environment'
-      );
-      location.reload();
-    }
-  });
-
-  // Save and Load buttons
-  save = select('#save');
-  save.mousePressed(function() {
-    knn.save();
-  });
-
-  load = select('#load');
-  load.mousePressed(function() {
-    knn.load(updateExampleCounts);
-  });
-
-  const buttonBlock = document.getElementById('buttonBlock');
-  for (let i = 1; i <= CLASSES; i++) {
-    // Train buttons
-    const btn = document.createElement('button');
-    btn.textContent = `Train ${i}`;
-    buttonBlock.appendChild(btn);
-    btn.addEventListener('mousedown', () => {
-      train(i);
-    });
-
-    // Reset buttons
-    const resetBtn = document.createElement('button');
-    resetBtn.textContent = `Reset ${i}`;
-    buttonBlock.appendChild(resetBtn);
-    resetBtn.addEventListener('mousedown', () => {
-      clearClass(i);
-      updateExampleCounts();
-    });
-
-    const example = document.createElement('span');
-    example.id = `example${i}`;
-    example.textContent = '0';
-    const exampleContainer = document.createElement('p');
-    exampleContainer.appendChild(example);
-    exampleContainer.insertAdjacentHTML('beforeend', ` Examples in ${i}<br>`);
-    buttonBlock.appendChild(exampleContainer);
+    navigator.mediaDevices
+      .getUserMedia({
+        video: {
+          facingMode: facingMode || 'environment',
+        },
+        audio: false,
+      })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(() => {
+        this.callback.onInitialized(false);
+      });
+    knn = new ml5.KNNImageClassifier(
+      classes || 3,
+      1,
+      this.modelLoaded.bind(this),
+      video
+    );
   }
 
-  // Predict Button
-  buttonPredict = select('#buttonPredict');
-  buttonPredict.mousePressed(predict);
-}
+  // A to be called when the model has been loaded
+  modelLoaded() {
+    this.callback.onInitialized(true);
+  }
 
-// A function to be called when the model has been loaded
-function modelLoaded() {
-  select('#loading').html('Model loaded!');
-}
+  // Train the Classifier on a frame from the video.
+  train(category) {
+    knn.addImageFromVideo(category);
+    this.updateExampleCounts();
+  }
 
-// Train the Classifier on a frame from the video.
-function train(category) {
-  select('#training').html(category);
-  knn.addImageFromVideo(category);
-  updateExampleCounts();
-}
+  // Predict the current frame.
+  predict() {
+    knn.predictFromVideo(this.gotResults.bind(this));
+  }
 
-// Predict the current frame.
-function predict() {
-  knn.predictFromVideo(gotResults);
-}
+  // Show the results
+  gotResults(results) {
+    this.callback.onRecognizeResult(results.classIndex);
 
-// Show the results
-function gotResults(results) {
-  select('#result').html(results.classIndex);
+    setTimeout(() => {
+      this.predict();
+    }, 50);
+  }
 
-  setTimeout(function() {
-    predict();
-  }, 50);
-}
+  // Clear the data in one class
+  clearClass(classIndex) {
+    knn.clearClass(classIndex);
+  }
 
-// Clear the data in one class
-function clearClass(classIndex) {
-  knn.clearClass(classIndex);
-}
+  // Update the example count for each class
+  updateExampleCounts() {
+    const counts = knn.getClassExampleCount();
+    for (let i = 1; i <= this.classes; i++) {
+      document.getElementById('example' + i).textContent = counts[i];
+    }
+  }
 
-// Update the example count for each class
-function updateExampleCounts() {
-  let counts = knn.getClassExampleCount();
-  for (let i = 1; i <= CLASSES; i++) {
-    select(`#example${i}`).html(counts[i]);
+  save() {
+    knn.save();
+  }
+
+  load() {
+    knn.load(this.updateExampleCounts.bind(this));
   }
 }
