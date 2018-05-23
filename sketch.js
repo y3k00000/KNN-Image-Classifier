@@ -19,7 +19,7 @@ class CameraRecognizer {
     navigator.mediaDevices
       .getUserMedia({
         video: {
-          facingMode: facingMode || 'environment',
+          facingMode: facingMode || 'user',
         },
         audio: false,
       })
