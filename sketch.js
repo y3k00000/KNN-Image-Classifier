@@ -45,7 +45,7 @@ class CameraRecognizer {
   // Train the Classifier on a frame from the video.
   train(category) {
     knn.addImageFromVideo(category);
-    this.updateExampleCounts();
+    this.callback.onTrainCompleted();
   }
 
   // Predict the current frame.
@@ -67,19 +67,15 @@ class CameraRecognizer {
     knn.clearClass(classIndex);
   }
 
-  // Update the example count for each class
-  updateExampleCounts() {
-    const counts = knn.getClassExampleCount();
-    for (let i = 1; i <= this.classes; i++) {
-      document.getElementById('example' + i).textContent = counts[i];
-    }
-  }
-
   save() {
     knn.save();
   }
 
   load() {
-    knn.load(this.updateExampleCounts.bind(this));
+    knn.load(this.callback.onTrainCompleted);
+  }
+
+  getClassExampleCount() {
+    return knn.getClassExampleCount();
   }
 }
