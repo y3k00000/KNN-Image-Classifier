@@ -72,8 +72,8 @@
           alert('Woops! Something wrong here.');
         }
       },
-      onTrainComplete: () => {
-
+      onTrainCompleted: () => {
+        updateExampleCounts();
       },
       onRecognizeResult: (result) => {
         document.getElementById('result').textContent = result
@@ -100,7 +100,7 @@
         buttonBlock.appendChild(resetBtn);
         resetBtn.addEventListener('mousedown', () => {
           cameraRecognizer.clearClass(i);
-          cameraRecognizer.updateExampleCounts();
+          updateExampleCounts();
         });
 
         const example = document.createElement('span');
@@ -124,6 +124,14 @@
             : 'environment'
         );
         location.reload();
+      }
+    }
+
+    // Update the example count for each class
+    const updateExampleCounts = () => {
+      const counts = cameraRecognizer.getClassExampleCount();
+      for (let i = 1; i <= CLASSES; i++) {
+        document.getElementById('example' + i).textContent = counts[i];
       }
     }
   </script>
