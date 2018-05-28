@@ -19,7 +19,8 @@ https://weizhihuang.github.io/KNN-Image-Classifier/
 
 更新歷程（時間降冪）
 =
-[latest]
+[latest][776c091]
+
 新增README.md
 
 [[8d147ee]](https://github.com/WeiZhiHuang/KNN-Image-Classifier/commit/8d147eee89212e56c1772f4e48195124291e50df)
